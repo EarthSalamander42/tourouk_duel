@@ -1,0 +1,8 @@
+tourouk
+{
+	material materials/overviews/tourouk.vmat
+	pos_x -3584
+	pos_y 3584
+	scale 7.000
+}
+
