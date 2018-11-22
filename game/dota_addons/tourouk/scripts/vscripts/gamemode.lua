@@ -13,25 +13,7 @@ end
 -- This library allow for easily delayed/timed actions
 require('libraries/timers')
 -- This library can be used for advancted physics/motion/collision of units.  See PhysicsReadme.txt for more information.
-require('libraries/physics')
--- This library can be used for advanced 3D projectile systems.
-require('libraries/projectiles')
--- This library can be used for sending panorama notifications to the UIs of players/teams/everyone
 require('libraries/notifications')
--- This library can be used for starting customized animations on units from lua
-require('libraries/animations')
--- This library can be used for performing "Frankenstein" attachments on units
-require('libraries/attachments')
--- This library can be used to synchronize client-server data via player/client-specific nettables
-require('libraries/playertables')
--- This library can be used to create container inventories or container shops
-require('libraries/containers')
--- This library provides a searchable, automatically updating lua API in the tools-mode via "modmaker_api" console command
-require('libraries/modmaker')
--- This library provides an automatic graph construction of path_corner entities within the map
-require('libraries/pathgraph')
--- This library (by Noya) provides player selection inspection and management from server lua
-require('libraries/selection')
 
 -- These internal libraries set up barebones's events and processes.  Feel free to inspect them/change them if you need to.
 require('internal/gamemode')
@@ -118,14 +100,7 @@ end
 ]]
 function GameMode:OnGameInProgress()
 	DebugPrint("[BAREBONES] The game has officially begun")
-
-	Timers:CreateTimer(30, -- Start this timer 30 game-time seconds later
-		function()
-			DebugPrint("This function is called 30 seconds after the game begins, and every 30 seconds thereafter")
-			return 30.0 -- Rerun this timer every 30 game-time seconds 
-		end)
 end
-
 
 
 -- This function initializes the game mode and is called before anyone loads into the game
@@ -135,22 +110,6 @@ function GameMode:InitGameMode()
 	DebugPrint('[BAREBONES] Starting to load Barebones gamemode...')
 
 	-- Commands can be registered for debugging purposes or as functions that can be called by the custom Scaleform UI
-	Convars:RegisterCommand( "command_example", Dynamic_Wrap(GameMode, 'ExampleConsoleCommand'), "A console command example", FCVAR_CHEAT )
 
 	DebugPrint('[BAREBONES] Done loading Barebones gamemode!\n\n')
-end
-
--- This is an example console command
-function GameMode:ExampleConsoleCommand()
-	print( '******* Example Console Command ***************' )
-	local cmdPlayer = Convars:GetCommandClient()
-	if cmdPlayer then
-		local playerID = cmdPlayer:GetPlayerID()
-		if playerID ~= nil and playerID ~= -1 then
-			-- Do something here for the player who called this command
-			PlayerResource:ReplaceHeroWith(playerID, "npc_dota_hero_viper", 1000, 1000)
-		end
-	end
-
-	print( '*********************************************' )
 end

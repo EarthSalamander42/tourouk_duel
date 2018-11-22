@@ -1,0 +1,15 @@
+<root> 
+	<styles>
+		<include src="file://{resources}/styles/custom_game/team_score.css" />
+	</styles>
+
+	<scripts>
+		<include src="file://{resources}/scripts/custom_game/team_score.js" />
+	</scripts>
+
+	<Panel class="TeamScoreRoot">
+		<Label id="TeamScoreLabelRadiant" text="0"/>
+		<Label id="TeamScoreLabel" text="#duel_score"/>
+		<Label id="TeamScoreLabelDire" text="0"/>
+	</Panel>
+</root>

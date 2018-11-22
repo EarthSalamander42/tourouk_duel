@@ -1,0 +1,33 @@
+.TeamScoreRoot
+{
+	width: 210px;
+	height: 50px;
+	margin-top: 40px;
+	align: center top;
+	background-image: url("s2r://panorama/images/hud/reborn/bg_timer_psd.vtex");
+	background-size: 100%;
+}
+
+#TeamScoreLabel,
+#TeamScoreLabelRadiant,
+#TeamScoreLabelDire, {
+	color: white;
+	vertical-align: center;
+	horizontal-align: center;
+	text-shadow: 4px 4px 4px #121212;
+	font-size: 20px;
+	font-weight: bold;
+	text-align: center;
+}
+
+#TeamScoreLabelRadiant {
+	margin-left: 25px;
+	horizontal-align: left;
+	color: green;
+}
+
+#TeamScoreLabelDire {
+	margin-right: 25px;
+	horizontal-align: right;
+	color: red;
+}
