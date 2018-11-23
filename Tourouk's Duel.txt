@@ -1,0 +1,37 @@
+//=================================================================================================================
+[NOT RELEASED YET]
+
+* Duels are now 2v2
+* Added a 3 second delay when a duel ends to prevent being sent back in arena (Ember Spirit's Sleight of Fist, Pudge's Hook, etc...)
+* Heroes are now chosen randomly in duel
+* Banned Weaver
+* Removed TP Scroll
+
+Bugfixes:
+* Fixed trap sounds not played
+
+
+//=================================================================================================================
+//=================================================================================================================
+//=================================================================================================================
+//=================================================================================================================
+
+[url=https://www.facebook.com/notes/x-hero-siege/x-hero-siege-348-ghost-revenant/992970980874671/]X Hero Siege 3.48: Ghost Revenant[/url]
+
+// Bugs
+* 
+
+// Suggestions
+* blink dagger, shadow blade, shadow amulet, satanic, 
+* set teams as 2v2
+* add aegis, cost 2500?
+* tp ld bear out of arena when finished (and kill illusions)
+* disable toggle spells on fall back from duel
+* add a 1 or 2 sec timer to prevent pudge hook leaving a hero in duel arena
+* make power rune spawn every minutes
+* add random spawn
+* increase duel count to 10 and make full team every 5 levels
+* add tower mid that reveals invisible enemy units
+* use old imba fountain to prevent spawncamping without damage (add 5 seconds immunity for ally then knockback everyone)
+
+* premier round = 1 par 1, deuxième = 2 par 2, et ainsi de suite, jusqu'à la fin des 5

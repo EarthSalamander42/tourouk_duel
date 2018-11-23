@@ -41,14 +41,7 @@ function GameMode:OnNPCSpawned(keys)
 	if npc:IsRealHero() then
 		if not npc.first_spawn then
 			npc.first_spawn = true
-
-			if npc:GetTeamNumber() == 2 then
-				RADIANT_HEROES_COUNT = RADIANT_HEROES_COUNT + 1
-				RADIANT_HEROES[RADIANT_HEROES_COUNT] = npc
-			elseif npc:GetTeamNumber() == 3 then
-				DIRE_HEROES_COUNT = DIRE_HEROES_COUNT + 1
-				DIRE_HEROES[DIRE_HEROES_COUNT] = npc
-			end
+			npc.is_in_arena = false
 
 			npc:SetRespawnsDisabled(true)
 		end
@@ -87,7 +80,7 @@ function GameMode:OnEntityKilled( keys )
 
 	-- Put code here to handle when an entity gets killed
 	if self:TeamHasAliveHeroes(killedUnit:GetTeamNumber()) then
-		GameMode:SpawnNextAvailableHero(killedUnit:GetTeamNumber(), 3.0)
+		GameMode:SpawnNextAvailableHero(killedUnit:GetTeamNumber(), HERO_LAUNCH_IN_DUEL_DELAY)
 	else
 		-- TODO: set everyone invulnerable to prevent draw
 		if killedUnit:GetTeamNumber() == 2 then
@@ -96,7 +89,7 @@ function GameMode:OnEntityKilled( keys )
 				dire = CustomNetTables:GetTableValue("game_options", "update_score").dire + 1,
 			})
 	
-			if CustomNetTables:GetTableValue("game_options", "update_score").dire >= 5 then
+			if CustomNetTables:GetTableValue("game_options", "update_score").dire >= DUELS_TO_WIN then
 				GameRules:SetGameWinner(3)
 				return
 			end
@@ -106,7 +99,7 @@ function GameMode:OnEntityKilled( keys )
 				dire = CustomNetTables:GetTableValue("game_options", "update_score").dire,
 			})
 
-			if CustomNetTables:GetTableValue("game_options", "update_score").radiant >= 5 then
+			if CustomNetTables:GetTableValue("game_options", "update_score").radiant >= DUELS_TO_WIN then
 				GameRules:SetGameWinner(2)
 				return
 			end
@@ -114,10 +107,13 @@ function GameMode:OnEntityKilled( keys )
 
 		DUEL_COUNT = DUEL_COUNT + 1
 
+		self:RefreshArena()
 		self:AwardWinner(killedUnit:GetOpposingTeamNumber())
-		self:RefreshPlayers()
 
-		self:StartDuel(30.0)
+		Timers:CreateTimer(INVULNERABLE_TIME_DUEL_END, function()
+			self:RefreshPlayers()
+			self:StartDuel(30.0)
+		end)
 	end
 end
 
@@ -132,58 +128,66 @@ function GameMode:StartDuel(iDelay)
 				return 1.0
 			end
 
-			print("Number of heroes to spawn:", DUEL_COUNT + 1)
-			GameMode:SpawnNextAvailableHero(2, 0.0, DUEL_COUNT + 1)
-			GameMode:SpawnNextAvailableHero(3, 0.0, DUEL_COUNT + 1)
+			GameMode:SpawnNextAvailableHero(2, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
+			GameMode:SpawnNextAvailableHero(3, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
 
 			Notifications:TopToAll({text = "DUEL!", duration = 3.0, style = {["font-size"] = "50px", color = "Red"} })
 
 			return nil
 		end)
 	else
-		GameMode:SpawnNextAvailableHero(2)
-		GameMode:SpawnNextAvailableHero(3)
+		GameMode:SpawnNextAvailableHero(2, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
+		GameMode:SpawnNextAvailableHero(3, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
 		Notifications:TopToAll({text = "DUEL!", duration = 3.0, style = {["font-size"] = "50px", color = "Red"} })
 	end
 end
 
 function GameMode:SpawnNextAvailableHero(team, iDelay, count)
-	local hero_table = RADIANT_HEROES
 	local spawn_point = "radiant_duel_spawnpoint"
 	local counter = 0
-	if count == nil then count = 1 end
+
+	if count == nil then
+		count = 1
+	end
 
 	if team == 3 then
-		hero_table = DIRE_HEROES
 		spawn_point = "dire_duel_spawnpoint"
 	end
 
-	for i = 1, PlayerResource:GetPlayerCountForTeam(team) do
-		if hero_table[i]:IsAlive() then
-			if iDelay then
-				Notifications:BottomToAll({hero = hero_table[i]:GetUnitName(), duration = iDelay})
-				Notifications:BottomToAll({text = PlayerResource:GetPlayerName(hero_table[i]:GetPlayerID()).." ", duration = iDelay, continue = true})
-				Notifications:BottomToAll({text = "#next_hero_in_duel", duration = iDelay, style = {color = "DodgerBlue"}, continue = true})
+	for _, hero in pairs(HeroList:GetAllHeroes()) do
+		if hero:IsRealHero() then
+			if hero:GetTeamNumber() == team and hero:IsAlive() and hero.is_in_arena == false then
+				if iDelay and iDelay ~= 0 then
+					local color = "green"
+					if hero:GetTeamNumber() == 3 then
+						color = "red"
+					end
 
-				GameMode:TeleportHero(hero_table[i], spawn_point, iDelay)
-			else
-				GameMode:TeleportHero(hero_table[i], spawn_point)
+					Notifications:BottomToAll({hero = hero:GetUnitName(), duration = iDelay})
+					Notifications:BottomToAll({text = PlayerResource:GetPlayerName(hero:GetPlayerID()).." ", duration = iDelay, continue = true})
+					Notifications:BottomToAll({text = "#next_hero_in_duel", duration = iDelay, style = {color = color}, continue = true})
+
+					GameMode:TeleportHeroInDuel(hero, spawn_point, iDelay)
+				else
+					GameMode:TeleportHeroInDuel(hero, spawn_point)
+				end
+
+				counter = counter + 1
+
+				if counter >= count then
+					return
+				end
 			end
-
---			counter = counter + 1
-
---			if counter >= count then
-				return
---			end
 		end
 	end
 end
 
-function GameMode:TeleportHero(hero, pos, iDelay)
+function GameMode:TeleportHeroInDuel(hero, pos, iDelay)
 	if iDelay == nil then iDelay = 0 end
 
 	Timers:CreateTimer(iDelay, function()
 		FindClearSpaceForUnit(hero, Entities:FindByName(nil, pos):GetAbsOrigin(), true)
+		hero.is_in_arena = true
 		PlayerResource:SetCameraTarget(hero:GetPlayerID(), hero)
 		Timers:CreateTimer(0.1, function()
 			PlayerResource:SetCameraTarget(hero:GetPlayerID(), nil)
@@ -193,9 +197,11 @@ end
 
 function GameMode:TeamHasAliveHeroes(team)
 	for _, hero in pairs(HeroList:GetAllHeroes()) do
-		if hero:GetTeamNumber() == team then
-			if hero:IsAlive() then
-				return true
+		if hero:IsRealHero() then
+			if hero:GetTeamNumber() == team then
+				if hero:IsAlive() and hero.is_in_arena == false then
+					return true
+				end
 			end
 		end
 	end
@@ -205,38 +211,51 @@ end
 
 function GameMode:AwardWinner(team)
 	for _, hero in pairs(HeroList:GetAllHeroes()) do
---		if hero:GetTeamNumber() == team then
---			hero:ModifyGold(2000, true, 0)
---			hero:AddExperience(1500, DOTA_ModifyXP_CreepKill, false, true)
---		else
-			hero:ModifyGold((500 * DUEL_COUNT) + 1500, true, 0)
-			hero:AddExperience((500 * DUEL_COUNT) + 1500, DOTA_ModifyXP_CreepKill, false, true)
---		end
+		if hero:IsRealHero() then
+--			if hero:GetTeamNumber() == team then
+--				hero:ModifyGold(2000, true, 0)
+--				hero:AddExperience(1500, DOTA_ModifyXP_CreepKill, false, true)
+--			else
+				hero:ModifyGold((DUEL_BONUS_GOLD * DUEL_COUNT) + DUEL_BASE_GOLD, true, 0)
+				hero:AddExperience((DUEL_BONUS_XP * DUEL_COUNT) + DUEL_BASE_XP, DOTA_ModifyXP_CreepKill, false, true)
+				hero:AddNewModifier(hero, nil, "modifier_command_restricted", {duration=INVULNERABLE_TIME_DUEL_END + 1.0})
+--			end
+		end
+	end
+end
+
+function GameMode:RefreshArena()
+	local enemies_to_clear = FindUnitsInRadius(2, Vector(0, 0, 0), nil, FIND_UNITS_EVERYWHERE, DOTA_UNIT_TARGET_TEAM_BOTH, DOTA_UNIT_TARGET_ALL, DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES + DOTA_UNIT_TARGET_FLAG_INVULNERABLE + DOTA_UNIT_TARGET_FLAG_OUT_OF_WORLD, FIND_ANY_ORDER, false)
+
+	for _, enemy in pairs(enemies_to_clear) do
+		if not enemy:IsRealHero() then
+			enemy:ForceKill(false)
+		end
 	end
 end
 
 function GameMode:RefreshPlayers()
-	Timers:CreateTimer(0.1, function()
-		for nPlayerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
-			if PlayerResource:HasSelectedHero( nPlayerID ) then
-				local hero = PlayerResource:GetSelectedHeroEntity( nPlayerID )
-				if hero:IsAlive() then
-					hero:SetHealth( hero:GetMaxHealth() )
-					hero:SetMana( hero:GetMaxMana() )
-					if hero:GetTeamNumber() == 2 then
-						GameMode:TeleportHero(hero, "radiant_base")
-					elseif hero:GetTeamNumber() == 3 then
-						GameMode:TeleportHero(hero, "dire_base")
-					end
-				else
-					hero:RespawnHero(false, false)
+	for nPlayerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
+		if PlayerResource:HasSelectedHero( nPlayerID ) then
+			local hero = PlayerResource:GetSelectedHeroEntity( nPlayerID )
+			if hero:IsAlive() then
+				hero:SetHealth( hero:GetMaxHealth() )
+				hero:SetMana( hero:GetMaxMana() )
+				if hero:GetTeamNumber() == 2 then
+					GameMode:TeleportHeroInDuel(hero, "radiant_base")
+				elseif hero:GetTeamNumber() == 3 then
+					GameMode:TeleportHeroInDuel(hero, "dire_base")
 				end
-
-				ProjectileManager:ProjectileDodge(hero)
-				hero:Purge(false, true, false, true, true)
+			else
+				hero:RespawnHero(false, false)
 			end
+
+			hero.is_in_arena = false
+
+			ProjectileManager:ProjectileDodge(hero)
+			hero:Purge(false, true, false, true, true)
 		end
-	end)
+	end
 end
 
 -- An item was picked up off the ground

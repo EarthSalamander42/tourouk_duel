@@ -14,6 +14,8 @@ end
 require('libraries/timers')
 -- This library can be used for advancted physics/motion/collision of units.  See PhysicsReadme.txt for more information.
 require('libraries/notifications')
+-- custom library to extend CDOTA_BaseNPC class
+require('libraries/base_npc')
 
 -- These internal libraries set up barebones's events and processes.  Feel free to inspect them/change them if you need to.
 require('internal/gamemode')

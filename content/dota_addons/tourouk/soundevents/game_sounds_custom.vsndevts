@@ -1,4 +1,4 @@
-"Creature.FireBreath.Cast"
+"Conquest.SpikeTrap.Plate"
 {
 	"operator_stacks"
 	{
@@ -14,7 +14,7 @@
 					{
 						"value"
 						{
-							"value0"		"sounds/mini_rosh_firebreath.vsnd"
+							"value0"		"sounds/addons/conquest/spike_trap_plate.vsnd"
 						}
 					}
 					"volume_min"
@@ -55,7 +55,7 @@
 	}
 }
 
-"Reflex.Midnight_Pulse"
+"Conquest.SpikeTrap.Activate.Generic"
 {
 	"operator_stacks"
 	{
@@ -71,7 +71,7 @@
 					{
 						"value"
 						{
-							"value0"		"sounds/weapons/hero/enigma/midnight_pulse.vsnd"
+							"value0"		"sounds/addons/conquest/spike_trap.vsnd"
 						}
 					}
 					"volume_min"
@@ -84,11 +84,11 @@
 					}
 					"pitch_min"
 					{
-						"value"		"1.000000"
+						"value"		"0.950000"
 					}
 					"pitch_max"
 					{
-						"value"		"1.000000"
+						"value"		"1.050000"
 					}
 					"chan_type"
 					{
@@ -100,19 +100,11 @@
 					}
 					"soundlevel_min"
 					{
-						"value"		"81.000000"
+						"value"		"90.000000"
 					}
 					"soundlevel_max"
 					{
-						"value"		"81.000000"
-					}
-					"mixgroup"
-					{
-						"value"		"Weapons"
-					}
-					"spread_radius"
-					{
-						"value"		"600.000000"
+						"value"		"90.000000"
 					}
 				}
 			}
@@ -120,24 +112,23 @@
 	}
 }
 
-
-"Start"
+"Conquest.FireTrap.Generic"
 {
 	"operator_stacks"
 	{
 		"update_stack"
 		{
-			"update_operator"
+			"reference_operator"
 			{
 				"operator"		"sos_reference_stack"
-				"reference_stack"		"src1_3d"
+				"reference_stack"		"dota_update_default"
 				"operator_variables"
 				{
 					"vsnd_files"
 					{
 						"value"
 						{
-							"value0"		"sounds/start.vsnd"
+							"value0"		"sounds/weapons/hero/dragon_knight/dragonknight_fire.vsnd"
 						}
 					}
 					"volume_min"
