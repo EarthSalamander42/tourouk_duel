@@ -42,7 +42,6 @@ function GameMode:OnNPCSpawned(keys)
 		if not npc.first_spawn then
 			npc.first_spawn = true
 			npc.is_in_arena = false
-
 			npc:SetRespawnsDisabled(true)
 		end
 	end
@@ -79,10 +78,11 @@ function GameMode:OnEntityKilled( keys )
 	end
 
 	-- Put code here to handle when an entity gets killed
-	if self:TeamHasAliveHeroes(killedUnit:GetTeamNumber()) then
+	if self:TeamHasAliveHeroes(killedUnit:GetTeamNumber()) == "42" then
+		-- ignore if a hero is still alive in arena, don't end yet!
+	elseif self:TeamHasAliveHeroes(killedUnit:GetTeamNumber()) == true then
 		GameMode:SpawnNextAvailableHero(killedUnit:GetTeamNumber(), HERO_LAUNCH_IN_DUEL_DELAY)
 	else
-		-- TODO: set everyone invulnerable to prevent draw
 		if killedUnit:GetTeamNumber() == 2 then
 			CustomNetTables:SetTableValue("game_options", "update_score", {
 				radiant = CustomNetTables:GetTableValue("game_options", "update_score").radiant,
@@ -128,18 +128,19 @@ function GameMode:StartDuel(iDelay)
 				return 1.0
 			end
 
-			GameMode:SpawnNextAvailableHero(2, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
-			GameMode:SpawnNextAvailableHero(3, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
-
-			Notifications:TopToAll({text = "DUEL!", duration = 3.0, style = {["font-size"] = "50px", color = "Red"} })
+			self:LaunchDuel()
 
 			return nil
 		end)
 	else
-		GameMode:SpawnNextAvailableHero(2, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
-		GameMode:SpawnNextAvailableHero(3, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
-		Notifications:TopToAll({text = "DUEL!", duration = 3.0, style = {["font-size"] = "50px", color = "Red"} })
+		self:LaunchDuel()
 	end
+end
+
+function GameMode:LaunchDuel()
+	GameMode:SpawnNextAvailableHero(2, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
+	GameMode:SpawnNextAvailableHero(3, HERO_LAUNCH_IN_DUEL_DELAY, HERO_COUNT_IN_DUEL)
+	Notifications:TopToAll({text = "DUEL!", duration = 3.0, style = {["font-size"] = "50px", color = "Red"} })
 end
 
 function GameMode:SpawnNextAvailableHero(team, iDelay, count)
@@ -185,9 +186,10 @@ end
 function GameMode:TeleportHeroInDuel(hero, pos, iDelay)
 	if iDelay == nil then iDelay = 0 end
 
+	hero.is_in_arena = true
+
 	Timers:CreateTimer(iDelay, function()
 		FindClearSpaceForUnit(hero, Entities:FindByName(nil, pos):GetAbsOrigin(), true)
-		hero.is_in_arena = true
 		PlayerResource:SetCameraTarget(hero:GetPlayerID(), hero)
 		Timers:CreateTimer(0.1, function()
 			PlayerResource:SetCameraTarget(hero:GetPlayerID(), nil)
@@ -196,14 +198,24 @@ function GameMode:TeleportHeroInDuel(hero, pos, iDelay)
 end
 
 function GameMode:TeamHasAliveHeroes(team)
+	local alive_hero_in_arena = false
+
 	for _, hero in pairs(HeroList:GetAllHeroes()) do
 		if hero:IsRealHero() then
 			if hero:GetTeamNumber() == team then
-				if hero:IsAlive() and hero.is_in_arena == false then
-					return true
+				if hero:IsAlive() then
+					if hero.is_in_arena == false then
+						return true
+					else
+						alive_hero_in_arena = true
+					end
 				end
 			end
 		end
+	end
+
+	if alive_hero_in_arena == true then
+		return "42"
 	end
 
 	return false
@@ -238,6 +250,7 @@ function GameMode:RefreshPlayers()
 	for nPlayerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
 		if PlayerResource:HasSelectedHero( nPlayerID ) then
 			local hero = PlayerResource:GetSelectedHeroEntity( nPlayerID )
+
 			if hero:IsAlive() then
 				hero:SetHealth( hero:GetMaxHealth() )
 				hero:SetMana( hero:GetMaxMana() )
@@ -250,10 +263,10 @@ function GameMode:RefreshPlayers()
 				hero:RespawnHero(false, false)
 			end
 
-			hero.is_in_arena = false
-
 			ProjectileManager:ProjectileDodge(hero)
 			hero:Purge(false, true, false, true, true)
+			hero:Stop()
+			hero.is_in_arena = false
 		end
 	end
 end

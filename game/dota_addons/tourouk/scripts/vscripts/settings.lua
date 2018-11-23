@@ -142,6 +142,8 @@ DUEL_BONUS_XP = 250
 HERO_LAUNCH_IN_DUEL_DELAY = 3.0
 INVULNERABLE_TIME_DUEL_END = 3.0
 
+RUNE_POWERUP_SPAWN_TIME = 60.0
+
 CustomNetTables:SetTableValue("game_options", "update_score", {
 	radiant = 0,
 	dire = 0,
