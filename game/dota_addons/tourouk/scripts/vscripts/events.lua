@@ -241,7 +241,12 @@ function GameMode:RefreshArena()
 
 	for _, enemy in pairs(enemies_to_clear) do
 		if not enemy:IsRealHero() then
-			enemy:ForceKill(false)
+			if string.find(enemy:GetUnitName(), "trap") or string.find(enemy:GetUnitName(), "fountain") then
+				print(enemy:GetUnitName())
+			else
+				print("killed:", enemy:GetUnitName())
+				enemy:ForceKill(false)
+			end
 		end
 	end
 end

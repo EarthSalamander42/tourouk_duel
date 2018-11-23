@@ -29,7 +29,7 @@ function GameMode:_InitGameMode()
 	GameRules:SetCustomVictoryMessageDuration( VICTORY_MESSAGE_DURATION )
 	GameRules:SetStartingGold( STARTING_GOLD )
 	GameRules:SetUseUniversalShopMode(true)
-	GameRules:SetPowerRuneSpawnInterval(RUNE_POWERUP_SPAWN_TIME)
+	GameRules:GetGameModeEntity():SetPowerRuneSpawnInterval(RUNE_POWERUP_SPAWN_TIME)
 
 	if SKIP_TEAM_SETUP then
 		GameRules:SetCustomGameSetupAutoLaunchDelay( 0 )
