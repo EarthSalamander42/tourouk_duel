@@ -6,13 +6,15 @@ function GameMode:OnDisconnect(keys)
 	local networkid = keys.networkid
 	local reason = keys.reason
 	local userid = keys.userid
-
 end
+
 -- The overall game state has changed
 function GameMode:OnGameRulesStateChange(keys)
 	local newState = GameRules:State_Get()
 
-	if newState == DOTA_GAMERULES_STATE_STRATEGY_TIME then
+	if newState == DOTA_GAMERULES_STATE_CUSTOM_GAME_SETUP then
+		self:SetupFountains()
+	elseif newState == DOTA_GAMERULES_STATE_STRATEGY_TIME then
 		for i = 0, PlayerResource:GetPlayerCount() - 1 do
 			if PlayerResource:IsValidPlayer(i) and not PlayerResource:HasSelectedHero(i) and PlayerResource:GetConnectionState(i) == DOTA_CONNECTION_STATE_CONNECTED then
 				PlayerResource:GetPlayer(i):MakeRandomHeroSelection()
@@ -25,8 +27,8 @@ function GameMode:OnGameRulesStateChange(keys)
 			SendToServerConsole('dota_bot_populate')
 		end
 
-		AddFOWViewer(2, Vector(0, 0, 0), 3000, 99999, false)
-		AddFOWViewer(3, Vector(0, 0, 0), 3000, 99999, false)
+		AddFOWViewer(2, Vector(0, 0, 0), 1800, 99999, false)
+		AddFOWViewer(3, Vector(0, 0, 0), 1800, 99999, false)
 	elseif newState == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
 		self:StartDuel()
 	end
@@ -110,6 +112,8 @@ function GameMode:OnEntityKilled( keys )
 			end
 		end
 
+		DUEL_COUNT = DUEL_COUNT + 1
+
 		self:AwardWinner(killedUnit:GetOpposingTeamNumber())
 		self:RefreshPlayers()
 
@@ -128,8 +132,10 @@ function GameMode:StartDuel(iDelay)
 				return 1.0
 			end
 
-			GameMode:SpawnNextAvailableHero(2)
-			GameMode:SpawnNextAvailableHero(3)
+			print("Number of heroes to spawn:", DUEL_COUNT + 1)
+			GameMode:SpawnNextAvailableHero(2, 0.0, DUEL_COUNT + 1)
+			GameMode:SpawnNextAvailableHero(3, 0.0, DUEL_COUNT + 1)
+
 			Notifications:TopToAll({text = "DUEL!", duration = 3.0, style = {["font-size"] = "50px", color = "Red"} })
 
 			return nil
@@ -141,9 +147,11 @@ function GameMode:StartDuel(iDelay)
 	end
 end
 
-function GameMode:SpawnNextAvailableHero(team, iDelay)
+function GameMode:SpawnNextAvailableHero(team, iDelay, count)
 	local hero_table = RADIANT_HEROES
 	local spawn_point = "radiant_duel_spawnpoint"
+	local counter = 0
+	if count == nil then count = 1 end
 
 	if team == 3 then
 		hero_table = DIRE_HEROES
@@ -162,11 +170,13 @@ function GameMode:SpawnNextAvailableHero(team, iDelay)
 				GameMode:TeleportHero(hero_table[i], spawn_point)
 			end
 
-			return
+--			counter = counter + 1
+
+--			if counter >= count then
+				return
+--			end
 		end
 	end
-
-	return false
 end
 
 function GameMode:TeleportHero(hero, pos, iDelay)
@@ -195,13 +205,13 @@ end
 
 function GameMode:AwardWinner(team)
 	for _, hero in pairs(HeroList:GetAllHeroes()) do
-		if hero:GetTeamNumber() == team then
-			hero:ModifyGold(2000, true, 0)
-			hero:AddExperience(1500, DOTA_ModifyXP_CreepKill, false, true)
-		else
-			hero:ModifyGold(1750, true, 0)
-			hero:AddExperience(1000, DOTA_ModifyXP_CreepKill, false, true)
-		end
+--		if hero:GetTeamNumber() == team then
+--			hero:ModifyGold(2000, true, 0)
+--			hero:AddExperience(1500, DOTA_ModifyXP_CreepKill, false, true)
+--		else
+			hero:ModifyGold((500 * DUEL_COUNT) + 1500, true, 0)
+			hero:AddExperience((500 * DUEL_COUNT) + 1500, DOTA_ModifyXP_CreepKill, false, true)
+--		end
 	end
 end
 
@@ -421,4 +431,13 @@ function GameMode:OnPlayerChat(keys)
 	local playerID = self.vUserIds[userID]:GetPlayerID()
 
 	local text = keys.text
+end
+
+-- Set up fountain regen
+function GameMode:SetupFountains()
+	local fountainEntities = Entities:FindAllByClassname("ent_dota_fountain")
+
+	for _,fountainEnt in pairs( fountainEntities ) do
+		fountainEnt:AddNewModifier(fountainEnt, fountainEnt, "modifier_fountain_silence", {})
+	end
 end

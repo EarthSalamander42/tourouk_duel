@@ -130,6 +130,8 @@ if IsInToolsMode() then
 	BOTS_ENABLED = true
 end
 
+DUEL_COUNT = 0
+
 RADIANT_HEROES = {}
 DIRE_HEROES = {}
 

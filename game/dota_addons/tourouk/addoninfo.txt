@@ -1,11 +1,10 @@
 "AddonInfo"
 {
-	"TeamCount" "10"
-	"maps"      "tourouk"
-	"IsPlayable"  "1"
+	"maps"			"tourouk"
+	"IsPlayable"	"1"
 
 	"tourouk"
 	{
-		"MaxPlayers"                    "4"
+		"MaxPlayers"                    "10"
 	}
 }
