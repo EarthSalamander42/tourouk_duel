@@ -1,10 +1,10 @@
 //=================================================================================================================
-[NOT RELEASED YET]
 
-* Duels are now 2v2
 * Added a 3 second delay when a duel ends to prevent being sent back in arena (Ember Spirit's Sleight of Fist, Pudge's Hook, etc...)
-* Heroes are now chosen randomly in duel
 * Banned Weaver
+* Duels are now 2v2
+* Heroes are now chosen randomly in duel
+* Reduced Runes spawn time from 2 to 1 minute
 * Removed TP Scroll
 
 Bugfixes:
@@ -12,6 +12,14 @@ Bugfixes:
 
 
 //=================================================================================================================
+
+* Reduced Tusk Walrus Kick range from 1400 to 300
+* Removed Blink Dagger
+
+Bugfixes:
+* Fixed traps and fountains being removed
+
+
 //=================================================================================================================
 //=================================================================================================================
 //=================================================================================================================
